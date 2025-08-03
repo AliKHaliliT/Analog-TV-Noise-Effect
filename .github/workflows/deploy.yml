@@ -1,8 +1,6 @@
-# Simple workflow for deploying static content to GitHub Pages
 name: Deploy Static Content to Pages
 
 on:
-  # Runs on pushes targeting the default branch
   push:
     branches: ["main"]
 
@@ -35,18 +33,12 @@ jobs:
           cp -r effects _site/
           cp docs/index.html _site/
           
-          echo "--- Content of index.html BEFORE replacement ---"
-          cat _site/index.html
-          
           sed -i "s#../effects/configs/#./effects/configs/#g" _site/index.html
-          
-          echo "--- Content of index.html AFTER replacement ---"
-          cat _site/index.html
           
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './_site'
+          path: "./_site"
           
   # Deployment job
   deploy:
