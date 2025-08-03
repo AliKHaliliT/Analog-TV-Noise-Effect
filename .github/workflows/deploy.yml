@@ -31,20 +31,12 @@ jobs:
         uses: actions/configure-pages@v5
       - name: Build with custom script
         run: |
-          # Create a directory for the site content
           mkdir -p _site
-          
-          # Copy files into the site directory
           cp -r effects _site/
           cp docs/index.html _site/
           
-          # Use a more robust sed command to fix the path.
-          # This replaces '../effects/configs/' with 'effects/configs/' regardless of quotes.
-          sed -i "s#../effects/configs/#effects/configs/#g" _site/index.html
-          
-          # (Optional) Add a log to see the final file structure for debugging.
-          echo "Final file structure in _site:"
-          ls -R _site
+          # CRITICAL FIX: Replace with './effects/configs/' to create a valid relative path
+          sed -i "s#../effects/configs/#./effects/configs/#g" _site/index.html
           
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
