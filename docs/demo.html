@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Analog TV Noise Effect</title>
+  <style>
+    /* --- General Styles --- */
+    body {
+      margin: 0;
+      background: black;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    /* --- UI Panel --- */
+    #ui {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      z-index: 10;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(5px);
+      display: flex;
+      align-items: center;
+      gap: 12px; /* Space between items */
+    }
+
+    /* --- UI Controls --- */
+    #ui label {
+      font-weight: 500;
+    }
+    #effectSelector {
+      background-color: #2c2c2c;
+      color: white;
+      border: 1px solid #555;
+      border-radius: 5px;
+      padding: 6px;
+      font-size: 14px;
+    }
+    #effectSelector:focus {
+      outline: 2px solid #007bff;
+      outline-offset: 1px;
+    }
+    
+    /* --- Fullscreen Button --- */
+    #fullscreenBtn {
+      background: transparent;
+      border: 1px solid #888;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s;
+    }
+    #fullscreenBtn:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+    #fullscreenBtn svg {
+      width: 22px;
+      height: 22px;
+      fill: white;
+    }
+    /* Hide the exit icon by default */
+    .icon-fullscreen-exit {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <label for="effectSelector">Effect:</label>
+    <select id="effectSelector"></select>
+    <button id="fullscreenBtn" title="Toggle Fullscreen">
+      <svg class="icon-fullscreen-enter" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+      <svg class="icon-fullscreen-exit" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
+    </button>
+  </div>
+  <canvas id="effectCanvas"></canvas>
+
+  <script type="module">
+    // --- Configuration ---
+    const EFFECTS_PATH = "../effects/configs/";
+    const EFFECTS_CONFIG = [
+      { name: "Colored - Fast & Coarse", file: "colored-fast-coarse.js" },
+      { name: "Colored - Fast & Fine",   file: "colored-fast-fine.js" },
+      { name: "Colored - Slow & Coarse", file: "colored-slow-coarse.js" },
+      { name: "Colored - Slow & Fine",   file: "colored-slow-fine.js" },
+      { name: "Grayscale - Fast & Coarse", file: "grayscale-fast-coarse.js" },
+      { name: "Grayscale - Slow & Coarse", file: "grayscale-slow-coarse.js" },
+      { name: "Grayscale - Fast & Coarse", file: "grayscale-fast-coarse.js" },
+      { name: "Grayscale - Slow & Fine",   file: "grayscale-slow-fine.js" }
+    ];
+
+    // --- DOM Elements ---
+    const effectSelector = document.getElementById("effectSelector");
+    const canvas = document.getElementById("effectCanvas");
+    const fullscreenBtn = document.getElementById("fullscreenBtn");
+    const iconEnter = fullscreenBtn.querySelector(".icon-fullscreen-enter");
+    const iconExit = fullscreenBtn.querySelector(".icon-fullscreen-exit");
+
+    // --- State Management ---
+    let currentEffectInstance = null;
+    const effectModuleCache = new Map();
+
+    // --- Core Functions ---
+
+    function populateSelector() {
+      const fragment = document.createDocumentFragment();
+      for (const config of EFFECTS_CONFIG) {
+        const option = document.createElement("option");
+        option.value = config.file;
+        option.textContent = config.name;
+        fragment.appendChild(option);
+      }
+      effectSelector.appendChild(fragment);
+    }
+    
+    async function switchEffect(filename) {
+      if (currentEffectInstance?.stop) {
+        currentEffectInstance.stop();
+      }
+      currentEffectInstance = null;
+      try {
+        let effectModule = effectModuleCache.get(filename);
+        if (!effectModule) {
+          const modulePath = `${EFFECTS_PATH}${filename}`;
+          effectModule = await import(modulePath);
+          effectModuleCache.set(filename, effectModule);
+        }
+        const effectFactory = effectModule.default;
+        if (typeof effectFactory !== "function") {
+          throw new Error(`Module ${filename} does not have a valid default export.`);
+        }
+        currentEffectInstance = effectFactory(canvas);
+        currentEffectInstance.start();
+      } catch (error) {
+        console.error(`Failed to load effect: ${filename}`, error);
+      }
+    }
+    
+    function handleResize() {
+      currentEffectInstance?.resize?.();
+    }
+    
+    // --- Fullscreen Functions ---
+
+    /** Toggles the document between fullscreen and normal mode. */
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          alert(`Could not enter fullscreen mode: ${err.message}`);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    }
+    
+    /** Updates the fullscreen button icon based on the current state. */
+    function updateFullscreenIcon() {
+      const isFullscreen = !!document.fullscreenElement;
+      iconEnter.style.display = isFullscreen ? "none" : "block";
+      iconExit.style.display = isFullscreen ? "block" : "none";
+      fullscreenBtn.title = isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen";
+    }
+
+    // --- Initialization ---
+    function init() {
+      populateSelector();
+
+      if (EFFECTS_CONFIG.length > 0) {
+        const initialEffectFile = EFFECTS_CONFIG[0].file;
+        effectSelector.value = initialEffectFile;
+        switchEffect(initialEffectFile);
+      }
+
+      // Add event listeners
+      effectSelector.addEventListener("change", (e) => switchEffect(e.target.value));
+      window.addEventListener("resize", handleResize);
+      
+      // Setup fullscreen button if the API is available
+      if (document.fullscreenEnabled) {
+        fullscreenBtn.addEventListener("click", toggleFullscreen);
+        document.addEventListener("fullscreenchange", updateFullscreenIcon);
+      } else {
+        fullscreenBtn.style.display = "none"; // Hide button if not supported
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
