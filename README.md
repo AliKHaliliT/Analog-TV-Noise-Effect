@@ -13,7 +13,7 @@ A live demo is hosted on GitHub Pages.
 
 -----
 
-## Features ✨
+## Features
 
   * **High Performance:** Uses pre-rendered frames and `requestAnimationFrame` for a smooth, CPU-friendly animation loop.
   * **Highly Customizable:** Easily create new effects by defining a simple configuration object.
@@ -27,7 +27,7 @@ A live demo is hosted on GitHub Pages.
 
 -----
 
-## How It Works 🛠️
+## How It Works
 
 The core of the project is the `effect-creator.js` module, which acts as a factory for generating noise effects.
 
@@ -129,7 +129,7 @@ That's it\! Your new effect will now appear in the dropdown selector.
 
 -----
 
-## Beyond the Canvas 🎨
+## Beyond the Canvas
 
 While this demo is built using the HTML Canvas 2D API, the core logic is highly portable. The `generateFrames` function in `effect-creator.js` works by manipulating a raw pixel buffer (`Uint32Array`).
 
