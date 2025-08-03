@@ -5,7 +5,7 @@
     <img src="https://img.shields.io/github/issues/AliKHaliliT/Analog-TV-Noise-Effect" alt="Open Issues">
 </div>
 <br/>
-This project is a lightweight, performant, and customizable generator for animated analog TV noise effects using HTML Canvas and modern JavaScript. It leverages pre-computation and a modular factory pattern to create various styles of static, from fine-grained grayscale fuzz to coarse, colorful snow.
+This project is a lightweight, performant, and customizable generator for animated analog TV noise effects using HTML Canvas and modern JavaScript. It leverages pre-computation and a modular factory pattern to create various styles of static, from fine-grained grayscale fuzz to coarse, colorful snow, with optional synchronized audio.
 
 A live demo is hosted on GitHub Pages.
 
@@ -15,14 +15,14 @@ A live demo is hosted on GitHub Pages.
 
 ## Features
 
-  * **High Performance:** Uses pre-rendered frames and `requestAnimationFrame` for a smooth, CPU-friendly animation loop.
+  * **High Performance:** Uses pre-rendered frames and `requestAnimationFrame` for a smooth, CPU-friendly visual animation loop.
+  * **Immersive Audio:** Includes an optional and synchronized static audio hiss generated via the **Web Audio API** for a more complete experience.
   * **Highly Customizable:** Easily create new effects by defining a simple configuration object.
-      * **Color:** Grayscale or full color noise.
-      * **Grain Size:** Fine (1x1 pixels) or coarse (e.g., 4x4 pixel blocks).
-      * **Speed:** Fast (updates every frame) or slow (updates at a set interval).
+      * **Visuals:** Grayscale or full color, fine or coarse grain, and variable animation speed.
+      * **Audio:** Enable or disable sound and control its volume.
   * **Modular Design:** Effects are created via a central factory, `effect-creator.js`.
   * **Responsive:** The canvas automatically resizes to fill the viewport.
-  * **Modern JavaScript:** Built with ES Modules for clean separation of concerns.
+  * **Modern JavaScript:** Built with ES Modules and a performant `AudioWorklet` for non-blocking sound generation.
   * **Demo:** Includes a straightforward interface to switch between presets and toggle fullscreen mode.
 
 -----
@@ -31,15 +31,15 @@ A live demo is hosted on GitHub Pages.
 
 The core of the project is the `effect-creator.js` module, which acts as a factory for generating noise effects.
 
-1.  **Configuration:** Each effect (e.g., `colored-fast-coarse.js`) is just a configuration file that specifies three properties: `isColor`, `grainSize`, and `updateInterval`.
+1.  **Configuration:** Each effect (e.g., `grayscale-fast-coarse-sound.js`) is a configuration file that specifies properties for visuals (`isColor`, `grainSize`, `updateInterval`) and audio (`withSound`, `soundVolume`).
 
 2.  **Effect Factory (`createEffect`):** This function takes a configuration object and returns another function. This returned function, when given a `<canvas>` element, initializes the effect.
 
-3.  **Frame Pre-computation:** To ensure high performance, the factory pre-generates a set number of noise frames (as `ImageData` objects) and stores them in an array. This avoids costly per-frame pixel manipulation during the animation. For coarse effects, it uses a smaller canvas and scales it with CSS for better performance.
+3.  **Frame Pre-computation:** To ensure high performance, the factory pre-generates a set number of visual noise frames (as `ImageData` objects) and stores them in an array. This avoids costly per-frame pixel manipulation during the animation.
 
 4.  **Animation Loop (`animate`):** A `requestAnimationFrame` loop cycles through the pre-generated frames. The `updateInterval` config determines how many browser frames to wait before drawing the next noise frame, controlling the animation's "speed".
 
-5.  **Dynamic Imports:** The main `index.html` file dynamically imports the selected effect module, making the initial load fast and allowing for easy addition of new effects without changing the core logic.
+5.  **Audio Generation:** When enabled, the effect uses the **Web Audio API**. An `AudioWorklet` generates white noise in a separate, high-priority audio thread, ensuring that sound playback is smooth and doesn't block the main UI thread. This audio is synchronized to start and stop with the visual effect.
 
 -----
 
@@ -55,10 +55,10 @@ The core of the project is the `effect-creator.js` module, which acts as a facto
     │   ├── colored-fast-fine.js
     │   ├── colored-slow-coarse.js
     │   ├── colored-slow-fine.js
-    │   ├── grayscale-fast-coarse.js
-    │   ├── grayscale-fast-fine.js
-    │   ├── grayscale-slow-coarse.js
-    │   └── grayscale-slow-fine.js
+    │   ├── grayscale-fast-coarse-sound.js
+    │   ├── grayscale-fast-fine-sound.js
+    │   ├── grayscale-slow-coarse-sound.js
+    │   └── grayscale-slow-fine-sound.js
     └── effect-creator.js      # Core factory for creating effects
 ```
 
@@ -99,17 +99,19 @@ Creating a new effect variation is simple:
 
 1.  **Create a new config file** in the `effects/configs/` directory. For example, `my-custom-effect.js`.
 
-2.  **Define your effect's configuration** inside the new file. Import the `createEffect` factory and export your new effect.
+2.  **Define your effect's configuration** inside the new file.
 
     ```javascript
     // effects/configs/my-custom-effect.js
-    import { createEffect } from './effect-creator.js';
+    import { createEffect } from '../effect-creator.js';
 
-    // A very slow, coarse, grayscale effect
+    // A slow, coarse, grayscale effect with sound
     const config = {
       isColor: false,
-      grainSize: 8,       // Very large blocks
-      updateInterval: 10,   // Update every 10 frames
+      grainSize: 8,         // Very large blocks
+      updateInterval: 10,     // Update every 10 frames
+      withSound: true,        // Enable audio noise
+      soundVolume: 0.08,      // Set a custom volume (0.0 to 1.0)
     };
 
     export default createEffect(config);
