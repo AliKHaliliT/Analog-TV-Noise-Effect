@@ -6,7 +6,7 @@ on:
   push:
     branches: ["main"]
 
-  # Allows you to run this workflow manually from the Actions tab
+  # Allows to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
@@ -15,8 +15,7 @@ permissions:
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+# Allow only one concurrent deployment
 concurrency:
   group: "pages"
   cancel-in-progress: false
@@ -35,17 +34,21 @@ jobs:
           # Create a directory for the site content
           mkdir -p _site
           
-          # Copy the effects folder and the main index.html to the site directory
+          # Copy files into the site directory
           cp -r effects _site/
           cp docs/index.html _site/
           
-          # Fix the relative path in the copied index.html file
-          # This command finds and replaces "../effects/configs/" with "effects/configs/"
-          sed -i 's|\"../effects/configs/\"|\"effects/configs/\"|g' _site/index.html
+          # Use a more robust sed command to fix the path.
+          # This replaces '../effects/configs/' with 'effects/configs/' regardless of quotes.
+          sed -i "s#../effects/configs/#effects/configs/#g" _site/index.html
+          
+          # (Optional) Add a log to see the final file structure for debugging.
+          echo "Final file structure in _site:"
+          ls -R _site
+          
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload the _site directory
           path: './_site'
           
   # Deployment job
