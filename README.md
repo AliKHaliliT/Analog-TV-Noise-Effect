@@ -1,9 +1,8 @@
 # Analog TV Noise Effect 📺
 <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
-    <img src="https://img.shields.io/github/license/AliKHaliliT/BResNet16-1DD" alt="License">
-    <img src="https://github.com/AliKHaliliT/BResNet16-1DD/actions/workflows/tests.yml/badge.svg" alt="tests">
-    <img src="https://img.shields.io/github/last-commit/AliKHaliliT/BResNet16-1DD" alt="Last Commit">
-    <img src="https://img.shields.io/github/issues/AliKHaliliT/BResNet16-1DD" alt="Open Issues">
+    <img src="https://img.shields.io/github/license/AliKHaliliT/Analog-TV-Noise-Effect" alt="License">
+    <img src="https://img.shields.io/github/last-commit/AliKHaliliT/Analog-TV-Noise-Effect" alt="Last Commit">
+    <img src="https://img.shields.io/github/issues/AliKHaliliT/Analog-TV-Noise-Effect" alt="Open Issues">
 </div>
 <br/>
 This project is a lightweight, performant, and customizable generator for animated analog TV noise effects using HTML Canvas and modern JavaScript. It leverages pre-computation and a modular factory pattern to create various styles of static, from fine-grained grayscale fuzz to coarse, colorful snow.
