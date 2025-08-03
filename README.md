@@ -9,7 +9,7 @@ This project is a lightweight, performant, and customizable generator for animat
 
 A live demo is hosted on GitHub Pages.
 
-**[➡️ View Live Demo](https://alikhalilit.github.io/Analog-TV-Noise-Effect/)**
+**[View Live Demo](https://alikhalilit.github.io/Analog-TV-Noise-Effect/)**
 
 -----
 
